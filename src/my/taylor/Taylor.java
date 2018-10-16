@@ -8,7 +8,7 @@ public class Taylor implements Runnable{
     /**
      * Точность
      */
-    final private double eps = 0.01;
+    final private double eps = 0.00000000000000001;
 
     /**
      * Значение переменной
@@ -18,7 +18,7 @@ public class Taylor implements Runnable{
     /**
      * Поток
      */
-    private Thread t;
+    Thread t;
 
     /**
      * Выбранная функция
@@ -35,7 +35,10 @@ public class Taylor implements Runnable{
      */
     private double result;
 
-    private int timeExec;
+    /**
+     * Время выполнения
+     */
+    private long timeExec;
 
     Taylor(FuncName funcName){
 
@@ -50,30 +53,40 @@ public class Taylor implements Runnable{
     private void func1(){  //e(x)
         double sum = 0;
         int i=0;
-        while (Math.abs(precise - sum) < eps){
+        long t1 = System.currentTimeMillis();
+        while (Math.abs(precise - sum) > eps){
             sum += ( Math.pow(x,i) / (double) factorial(i) );
             i++;
         }
+        long t2 = System.currentTimeMillis();
         result = sum;
+        timeExec = t2 - t1;
     }
 
     private void func2(){  //sin(x)
         double sum = 0;
         int i=0;
-        while (Math.abs(precise - sum) < eps){
-            sum += (Math.pow(-1, i) * Math.pow(x, 2*i)) / (double) factorial(2*i);
+        long t1 = System.currentTimeMillis();
+        while (Math.abs(precise - sum) > eps){
+            sum += ((Math.pow(-1, i) * Math.pow(x, 2*i)) / (double) factorial(2*i));
             i++;
         }
+        long t2 = System.currentTimeMillis();
         result = sum;
+        timeExec = t2 - t1;
     }
 
     private void  func3(){  //cos(x)
         double sum = 0;
         int i=0;
-        while (Math.abs(precise - sum) < eps){
-            sum += (Math.pow(-1, i) * Math.pow(x, 2*i+1)) / (double) factorial(2*i+1);
+        long t1 = System.currentTimeMillis();
+        while (Math.abs(precise - sum) > eps){
+            sum += ((Math.pow(-1, i) * Math.pow(x, 2*i+1)) / (double) factorial(2*i+1));
+            i++;
         }
+        long t2 = System.currentTimeMillis();
         result = sum;
+        timeExec = t2 - t1;
     }
 
     @Override
@@ -83,40 +96,47 @@ public class Taylor implements Runnable{
             case EXP: {
                 precise = Math.exp(x);
                 func1();
+                break;
             }
 
             case SIN: {
                 precise = Math.sin(x);
                 func2();
+                break;
             }
 
             case COS: {
                 precise = Math.cos(x);
-                func3();}
+                func3();
+                break;
+            }
         }
-
-
+        writeToFile();
     }
 
     private synchronized void writeToFile(){
-        try(FileWriter writer = new FileWriter("output.txt", false)){
-            writer.write("Название функции" + funcName.getFuncDesc() +"\n");
-            writer.write("Значение переменной" + x + "\n");
-            writer.write("Значение функции" + result + "\n");
+        try(FileWriter writer = new FileWriter("output.txt", true)){
+            writer.write("===================================================\n");
+            writer.write("Название функции = " + funcName.getFuncDesc() +"\n");
+            writer.write("Значение переменной = " + x + "\n");
+            writer.write("Значение функции = " + result + "\n");
+            writer.write("Точное значение = " + precise + "\n");
+            writer.write("Время выполнения =" + timeExec + "\n");
+
+            writer.flush();
         }
         catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private long factorial(int count){
-
-        long fact=1L;
-        for(int i=0; i<count; i++){
-            fact *= i;
-        }
+    private long factorial(int num) {
+        long fact = 1;
+        for (; num > 0; fact *= num--);
+        System.out.println(fact);
         return fact;
     }
+
 
 
 
